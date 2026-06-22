@@ -1,0 +1,139 @@
+CREATE DATABASE TiendaSara;
+GO
+
+USE TiendaSara;
+GO
+
+CREATE TABLE Categorias(
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Descripcion VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE Marcas(
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Descripcion VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE Productos(
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Descripcion VARCHAR(150) NOT NULL,
+    Precio DECIMAL(10,2) NOT NULL CHECK(Precio > 0),
+    Cantidad INT NOT NULL CHECK(Cantidad >= 0),
+    IdCategoria INT NOT NULL,
+    IdMarca INT NOT NULL,
+
+    FOREIGN KEY(IdCategoria)
+        REFERENCES Categorias(Id),
+
+    FOREIGN KEY(IdMarca)
+        REFERENCES Marcas(Id)
+);
+
+CREATE TABLE Carrito(
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    FolioVenta VARCHAR(20) NOT NULL,
+    TotalCompra DECIMAL(10,2),
+    Estatus VARCHAR(20) DEFAULT 'Pendiente',
+    Fecha DATE DEFAULT GETDATE()
+);
+
+CREATE TABLE CarritoDetalle(
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    IdCarrito INT NOT NULL,
+    IdProducto INT NOT NULL,
+    Cantidad INT NOT NULL,
+    Subtotal DECIMAL(10,2) NOT NULL,
+
+    FOREIGN KEY(IdCarrito)
+        REFERENCES Carrito(Id),
+
+    FOREIGN KEY(IdProducto)
+        REFERENCES Productos(Id)
+);
+
+INSERT INTO Categorias VALUES
+('Electrónica'),
+('Ropa'),
+('Hogar'),
+('Deportes'),
+('Videojuegos');
+
+INSERT INTO Marcas VALUES
+('Samsung'),
+('Nike'),
+('LG'),
+('Adidas'),
+('Sony');
+
+INSERT INTO Productos
+(Descripcion,Precio,Cantidad,IdCategoria,IdMarca)
+VALUES
+('Smart TV 50"',12000,10,1,3),
+('Tenis Running',1800,20,4,2),
+('PlayStation 5',14000,8,5,5),
+('Playera Deportiva',500,30,2,4),
+('Monitor Samsung',4500,15,1,1);
+
+INSERT INTO Carrito
+(FolioVenta,TotalCompra,Estatus,Fecha)
+VALUES
+('V001',12000,'Pagado','2025-01-10'),
+('V002',1800,'Pagado','2025-01-11'),
+('V003',14000,'Pendiente','2025-01-12'),
+('V004',500,'Pagado','2025-01-13'),
+('V005',4500,'Pagado','2025-01-14');
+
+INSERT INTO CarritoDetalle
+(IdCarrito,IdProducto,Cantidad,Subtotal)
+VALUES
+(1,1,1,12000),
+(2,2,1,1800),
+(3,3,1,14000),
+(4,4,1,500),
+(5,5,1,4500);
+
+--Consultar los productos con sus marcas y sus categorías.--
+SELECT
+P.Id,
+P.Descripcion AS Producto,
+P.Precio,
+P.Cantidad,
+C.Descripcion AS Categoria,
+M.Descripcion AS Marca
+FROM Productos P
+INNER JOIN Categorias C
+ON P.IdCategoria = C.Id
+INNER JOIN Marcas M
+ON P.IdMarca = M.Id;
+
+--Consultar los carritos con sus carritos detalle y sus productos.--
+SELECT
+CA.FolioVenta,
+CA.Fecha,
+P.Descripcion AS Producto,
+CD.Cantidad,
+CD.Subtotal
+FROM Carrito CA
+INNER JOIN CarritoDetalle CD
+ON CA.Id = CD.IdCarrito
+INNER JOIN Productos P
+ON CD.IdProducto = P.Id;
+
+--Consultar los carritos con sus carritos detalle y sus productos y sus marcas y categorías.--
+SELECT
+CA.FolioVenta,
+CA.Fecha,
+P.Descripcion AS Producto,
+M.Descripcion AS Marca,
+C.Descripcion AS Categoria,
+CD.Cantidad,
+CD.Subtotal
+FROM Carrito CA
+INNER JOIN CarritoDetalle CD
+ON CA.Id = CD.IdCarrito
+INNER JOIN Productos P
+ON CD.IdProducto = P.Id
+INNER JOIN Marcas M
+ON P.IdMarca = M.Id
+INNER JOIN Categorias C
+ON P.IdCategoria = C.Id;
